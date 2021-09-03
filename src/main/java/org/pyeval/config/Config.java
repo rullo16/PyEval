@@ -12,9 +12,9 @@ public enum Config implements PeConfigBackend {
 
     Config() {
         config = SpConfig.getSpConfig(SERVICE_ID);
-        config.register(HOST, "ExampleProcessor", "Data processor host");
+        config.register(HOST, "PyEval", "Data processor host");
         config.register(PORT, 6666, "Data processor port");
-        config.register(SERVICE_NAME, "ExampleProcessor", "Data processor service name");
+        config.register(SERVICE_NAME, "PyEval", "Data processor service name");
         config.register(BACKEND_HOST, "localhost", "Backend host");
         config.register(BACKEND_PORT, 8030, "Backend Port");
     }
