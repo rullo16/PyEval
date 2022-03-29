@@ -1,0 +1,5 @@
+org.gft.pe.processor.pyeval.title=Python Evaluator
+org.gft.pe.processor.pyeval=Evaluator for python code as pipeline component
+
+example-key.title=Example Text Parameter
+example-key.description=Example Text Parameter Description
