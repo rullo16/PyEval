@@ -36,10 +36,10 @@ import org.apache.streampipes.wrapper.routing.SpOutputCollector;
 import org.apache.streampipes.wrapper.runtime.EventProcessor;
 import org.apache.streampipes.wrapper.standalone.ProcessorParams;
 import org.apache.streampipes.wrapper.standalone.StreamPipesDataProcessor;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyObject;
+import org.python.core.PyObject;
+import org.python.util.PythonInterpreter;
 
+import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -49,38 +49,36 @@ import java.util.Map;
 
 public class PyEval implements EventProcessor<PyEvalParameters> {
 
-  private Context polyglot;
-  private Value function;
+  private ScriptEngine engine;
+  PythonInterpreter interpreter;
+  private final String SCRIPTING_NAME = "python";
+  private String code;
 
   @Override
   public void onInvocation(PyEvalParameters parameters, SpOutputCollector spOutputCollectort, EventProcessorRuntimeContext runtimeContext) throws SpRuntimeException  {
+    ScriptEngineManager factory = new ScriptEngineManager();
+    engine = factory.getEngineByName(SCRIPTING_NAME);
+    interpreter = new PythonInterpreter();
+    code = parameters.getCode();
 
-    polyglot = Context.create();
-    String code = parameters.getCode();
-    function = polyglot.eval("python", "(" + code + ")");
+    interpreter.eval(code);
   }
 
   @Override
-  public void onEvent(Event event,SpOutputCollector out) throws SpRuntimeException{
+  public void onEvent(Event event,SpOutputCollector out) throws SpRuntimeException {
     Event outEvent = new Event(new HashMap<>(), event.getSourceInfo(), event.getSchemaInfo());
 
-    try{
+    final Map<String, Object> eventData = event.getRaw();
 
-      final Map<String,Object> eventData = event.getRaw();
-
-      Object result = function.execute(ProxyObject.fromMap(eventData));
-      Map<String,Object> resultEvent = ((Value) result).as(java.util.Map.class);
-      if (resultEvent != null){
-        resultEvent.forEach(outEvent::addField);
-        out.collect(outEvent);
-      }
-
-    } catch (ClassCastException e) {
-      throw new SpRuntimeException("'process' method must return a map with new event data.");
+    Object result = interpreter.functionCAll("process", evene.ddj);
+    if (result != null) {
+      Map<String, Object> output = (Map<String, Object>) result;
+      output.forEach(outEvent::addField);
+      out.collect(outEvent);
     }
   }
 
-  @Override
+    @Override
   public void onDetach(){
     //nothing.
   }
